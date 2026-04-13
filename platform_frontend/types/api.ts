@@ -13,6 +13,7 @@ export interface CategoryTree {
   parent_id?: number;
   depth: number;
   order: number;
+  article_count: number;
   children: CategoryTree[];
 }
 
@@ -71,10 +72,20 @@ export interface ArticleDetail {
   category?: { id: number; name: string; slug: string };
   breadcrumb: { id: number; name: string; slug: string }[];
   side_panel_sections: SidePanelSection[];
+  multimedia_contents: ArticleMultimediaContent[];
   media_map: Record<string, MediaMapEntry>;
   author?: { username: string };
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ArticleMultimediaContent {
+  id: number;
+  article_id: number;
+  media_asset_id: number;
+  order: number;
+  media: MediaMapEntry;
+  created_at?: string;
 }
 
 export interface PaginatedArticles {

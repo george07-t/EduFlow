@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.schemas.side_panel_section import SidePanelSectionCreate, SidePanelSectionRead
+from app.schemas.article_multimedia_content import (
+    ArticleMultimediaContentCreate,
+    ArticleMultimediaContentRead,
+)
 
 
 class ArticleCreate(BaseModel):
@@ -12,6 +16,7 @@ class ArticleCreate(BaseModel):
     status: str = "draft"
     featured: bool = False
     side_panel_sections: List[SidePanelSectionCreate] = []
+    multimedia_contents: List[ArticleMultimediaContentCreate] = []
 
 
 class ArticleUpdate(BaseModel):
@@ -22,6 +27,7 @@ class ArticleUpdate(BaseModel):
     status: Optional[str] = None
     featured: Optional[bool] = None
     side_panel_sections: Optional[List[SidePanelSectionCreate]] = None
+    multimedia_contents: Optional[List[ArticleMultimediaContentCreate]] = None
 
 
 class ArticleStatusUpdate(BaseModel):
@@ -69,6 +75,7 @@ class ArticleDetail(BaseModel):
     category: Optional[CategoryMinimal] = None
     breadcrumb: List[Dict[str, Any]] = []
     side_panel_sections: List[SidePanelSectionRead] = []
+    multimedia_contents: List[ArticleMultimediaContentRead] = []
     media_map: Dict[str, Any] = {}
     author: Optional[AuthorRead] = None
     created_at: Optional[datetime] = None

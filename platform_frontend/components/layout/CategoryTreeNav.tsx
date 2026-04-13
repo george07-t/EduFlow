@@ -34,9 +34,12 @@ function CategoryNode({ node, level = 0 }: NodeProps) {
         {!hasChildren && <span className="w-4 flex-shrink-0" />}
         <Link
           href={`/category/${node.slug}`}
-          className="flex-1 py-1 px-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors truncate"
+          className="flex-1 flex items-center justify-between gap-3 py-1 px-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors min-w-0"
         >
-          {node.name}
+          <span className="truncate">{node.name}</span>
+          <span className="shrink-0 text-[11px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded-full px-2 py-0.5 group-hover:bg-white group-hover:text-blue-600 group-hover:border-blue-200">
+            {node.article_count}
+          </span>
         </Link>
       </div>
       {hasChildren && open && (

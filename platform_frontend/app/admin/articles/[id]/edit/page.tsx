@@ -8,6 +8,7 @@ import { CategoryTree, ArticleDetail } from "@/types/api";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import SidePanelSectionEditor, { SectionFormData } from "@/components/admin/ArticleEditor/SidePanelSectionEditor";
+import MultimediaContentsEditor, { MultimediaContentFormData } from "@/components/admin/ArticleEditor/MultimediaContentsEditor";
 import Skeleton from "@/components/ui/Skeleton";
 import { toast } from "react-toastify";
 
@@ -32,6 +33,7 @@ export default function EditArticlePage() {
   const [status, setStatus] = useState("draft");
   const [featured, setFeatured] = useState(false);
   const [sections, setSections] = useState<SectionFormData[]>([]);
+  const [multimediaContents, setMultimediaContents] = useState<MultimediaContentFormData[]>([]);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,6 +69,11 @@ export default function EditArticlePage() {
         order: s.order,
         is_expanded_default: s.is_expanded_default,
       })));
+      setMultimediaContents(
+        (a.multimedia_contents || [])
+          .sort((x, y) => x.order - y.order)
+          .map((m, idx) => ({ media_asset_id: m.media_asset_id, order: idx }))
+      );
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [articleId]);
@@ -84,6 +91,7 @@ export default function EditArticlePage() {
         status,
         featured,
         side_panel_sections: sections.map((s, i) => ({ ...s, order: i })),
+        multimedia_contents: multimediaContents.map((m, i) => ({ ...m, order: i })),
       });
       toast.success("Article saved!");
     } catch (err: unknown) {
@@ -156,6 +164,10 @@ export default function EditArticlePage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <SidePanelSectionEditor sections={sections} onChange={setSections} />
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <MultimediaContentsEditor value={multimediaContents} onChange={setMultimediaContents} />
         </div>
 
         <div className="flex gap-3 pb-8">

@@ -14,6 +14,7 @@ from app.models.category import Category
 from app.models.media_asset import MediaAsset
 from app.models.article import Article
 from app.models.side_panel_section import SidePanelSection
+from app.models.article_multimedia_content import ArticleMultimediaContent
 from app.services.auth_service import hash_password
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -340,6 +341,7 @@ def _upsert_articles(db, admin_id: int, categories_by_slug: dict[str, Category],
                     ),
                 },
             ],
+            "multimedia_keys": ["bio_glossary_text", "cell_image", "dna_audio", "micro_scope_video", "khan_cells_youtube"],
         },
         {
             "slug": "genetics-and-information-flow",
@@ -372,6 +374,7 @@ def _upsert_articles(db, admin_id: int, categories_by_slug: dict[str, Category],
                     "content_html": "<p>For a broader refresher, revisit the cell lesson [[media:{khan_cells_youtube}]].</p>",
                 },
             ],
+            "multimedia_keys": ["bio_glossary_text", "cell_image", "dna_audio", "micro_scope_video", "khan_cells_youtube"],
         },
         {
             "slug": "machine-learning-from-patterns-to-predictions",
@@ -405,8 +408,96 @@ def _upsert_articles(db, admin_id: int, categories_by_slug: dict[str, Category],
                     "content_html": "<p>Replay the introductory walkthrough [[media:{ml_intro_youtube}]] before building your first model.</p>",
                 },
             ],
+            "multimedia_keys": ["bio_glossary_text", "cell_image", "dna_audio", "micro_scope_video", "ml_intro_youtube"],
         },
     ]
+
+    category_bulk_specs = [
+        {
+            "category_slug": "cell-biology",
+            "series_prefix": "Cell Biology Learning Sprint",
+            "summary_prefix": "Short focused lesson on organelles, signaling, and cellular systems",
+            "base_body": (
+                "<h2>Core Concept</h2>"
+                "<p>This lesson expands your foundation with compact explanations and media checkpoints "
+                "[[media:{bio_glossary_text}]] [[media:{cell_image}]].</p>"
+                "<h2>Practice Loop</h2>"
+                "<p>Reinforce pronunciation and terminology with audio [[media:{dna_audio}]] and a quick visual clip "
+                "[[media:{micro_scope_video}]].</p>"
+            ),
+            "youtube_key": "khan_cells_youtube",
+        },
+        {
+            "category_slug": "genetics",
+            "series_prefix": "Genetics Fundamentals Drill",
+            "summary_prefix": "Targeted module on inheritance, DNA flow, and molecular reasoning",
+            "base_body": (
+                "<h2>DNA Information Pathways</h2>"
+                "<p>Track how instructions move from DNA to proteins while revisiting glossary support "
+                "[[media:{bio_glossary_text}]] and reference visuals [[media:{cell_image}]].</p>"
+                "<h2>Retrieval Practice</h2>"
+                "<p>Use short auditory prompts [[media:{dna_audio}]] and video recaps [[media:{micro_scope_video}]] "
+                "to accelerate long-term retention.</p>"
+            ),
+            "youtube_key": "khan_cells_youtube",
+        },
+        {
+            "category_slug": "machine-learning",
+            "series_prefix": "Machine Learning Studio",
+            "summary_prefix": "Applied lesson on datasets, models, and prediction systems",
+            "base_body": (
+                "<h2>Modeling Workflow</h2>"
+                "<p>Frame each task as input-output mapping and compare model behavior under different assumptions. "
+                "For guided context, open the text panel [[media:{bio_glossary_text}]].</p>"
+                "<h2>Learning Through Modalities</h2>"
+                "<p>Switch between diagram reference [[media:{cell_image}]], quick audio cue [[media:{dna_audio}]], and "
+                "short clip [[media:{micro_scope_video}]] while studying model intuition.</p>"
+            ),
+            "youtube_key": "ml_intro_youtube",
+        },
+    ]
+
+    for bulk in category_bulk_specs:
+        for idx in range(1, 13):
+            article_specs.append(
+                {
+                    "slug": f"{bulk['category_slug']}-module-{idx:02d}",
+                    "title": f"{bulk['series_prefix']} {idx:02d}",
+                    "summary": f"{bulk['summary_prefix']} - module {idx:02d}.",
+                    "category_slug": bulk["category_slug"],
+                    "status": "published",
+                    "featured": idx % 6 == 0,
+                    "body_html": (
+                        f"<h1>{bulk['series_prefix']} {idx:02d}</h1>"
+                        + bulk["base_body"]
+                        + f"<p>Finish with the recap video [[media:{{{bulk['youtube_key']}}}]].</p>"
+                    ),
+                    "sections": [
+                        {
+                            "label": "Introduction",
+                            "is_expanded_default": True,
+                            "content_html": "<p>Use this section to map core terms before moving deeper.</p>",
+                        },
+                        {
+                            "label": "Detailed Explanation",
+                            "is_expanded_default": False,
+                            "content_html": "<p>Compare definitions, examples, and edge cases using the inline modal markers.</p>",
+                        },
+                        {
+                            "label": "Additional Resources",
+                            "is_expanded_default": False,
+                            "content_html": f"<p>Open the guided recap [[media:{{{bulk['youtube_key']}}}]] when reviewing this module.</p>",
+                        },
+                    ],
+                    "multimedia_keys": [
+                        "bio_glossary_text",
+                        "cell_image",
+                        "dna_audio",
+                        "micro_scope_video",
+                        bulk["youtube_key"],
+                    ],
+                }
+            )
 
     for spec in article_specs:
         category = categories_by_slug[spec["category_slug"]]
@@ -437,6 +528,19 @@ def _upsert_articles(db, admin_id: int, categories_by_slug: dict[str, Category],
                     content_html=section["content_html"].format(**media_ids),
                     order=i,
                     is_expanded_default=section["is_expanded_default"],
+                )
+            )
+
+        db.query(ArticleMultimediaContent).filter(ArticleMultimediaContent.article_id == article.id).delete()
+        for i, multimedia_key in enumerate(spec.get("multimedia_keys", [])):
+            media_asset = media_by_key.get(multimedia_key)
+            if not media_asset:
+                continue
+            db.add(
+                ArticleMultimediaContent(
+                    article_id=article.id,
+                    media_asset_id=media_asset.id,
+                    order=i,
                 )
             )
 

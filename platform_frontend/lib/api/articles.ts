@@ -27,6 +27,10 @@ export const articlesApi = {
       order: number;
       is_expanded_default: boolean;
     }>;
+    multimedia_contents?: Array<{
+      media_asset_id: number;
+      order: number;
+    }>;
   }) => client.post<ArticleDetail>("/articles", data),
 
   update: (
@@ -43,6 +47,10 @@ export const articlesApi = {
         content_html: string;
         order: number;
         is_expanded_default: boolean;
+      }>;
+      multimedia_contents?: Array<{
+        media_asset_id: number;
+        order: number;
       }>;
     }
   ) => client.put<ArticleDetail>(`/articles/${id}`, data),

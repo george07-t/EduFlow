@@ -38,4 +38,10 @@ class Article(Base):
         order_by="SidePanelSection.order",
         cascade="all, delete-orphan",
     )
+    multimedia_contents = relationship(
+        "ArticleMultimediaContent",
+        back_populates="article",
+        order_by="ArticleMultimediaContent.order",
+        cascade="all, delete-orphan",
+    )
     author = relationship("User", foreign_keys=[created_by])

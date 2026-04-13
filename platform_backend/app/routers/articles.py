@@ -8,6 +8,7 @@ from app.dependencies.auth import require_authenticated_user, get_current_user_o
 from app.models.article import Article
 from app.models.category import Category
 from app.models.side_panel_section import SidePanelSection
+from app.models.article_multimedia_content import ArticleMultimediaContent
 from app.models.user import User
 from app.schemas.article import (
     ArticleCreate,
@@ -25,7 +26,8 @@ from app.services.trigger_parser import parse_triggers
 from app.routers.categories import build_breadcrumb
 
 router = APIRouter(prefix="/api/articles", tags=["articles"])
-
+from app.schemas.article_multimedia_content import ArticleMultimediaContentRead, MultimediaAssetRead
+from app.services.trigger_parser import parse_triggers, resolve_asset_url
 
 def compute_read_time(html: str) -> int:
     import re
@@ -53,6 +55,32 @@ def article_to_detail(a: Article, db: Session) -> ArticleDetail:
     html_fields = [a.body_html] + [s.content_html for s in a.side_panel_sections]
     media_map = parse_triggers(html_fields, db)
 
+    multimedia_contents: list[ArticleMultimediaContentRead] = []
+    for item in a.multimedia_contents:
+        if not item.media_asset:
+            continue
+
+        media_payload = MultimediaAssetRead(
+            id=item.media_asset.id,
+            type=item.media_asset.type,
+            title=item.media_asset.title,
+            url=resolve_asset_url(item.media_asset),
+            alt_text=item.media_asset.alt_text,
+            content=item.media_asset.content,
+        )
+        media_map[str(item.media_asset.id)] = media_payload.model_dump()
+
+        multimedia_contents.append(
+            ArticleMultimediaContentRead(
+                id=item.id,
+                article_id=item.article_id,
+                media_asset_id=item.media_asset_id,
+                order=item.order,
+                media=media_payload,
+                created_at=item.created_at,
+            )
+        )
+
     breadcrumb = build_breadcrumb(a.category, db) if a.category else []
 
     return ArticleDetail(
@@ -67,6 +95,7 @@ def article_to_detail(a: Article, db: Session) -> ArticleDetail:
         category=CategoryMinimal.model_validate(a.category) if a.category else None,
         breadcrumb=breadcrumb,
         side_panel_sections=[SidePanelSectionRead.model_validate(s) for s in a.side_panel_sections],
+        multimedia_contents=multimedia_contents,
         media_map=media_map,
         author=AuthorRead.model_validate(a.author) if a.author else None,
         created_at=a.created_at,
@@ -172,6 +201,13 @@ def create_article(
             is_expanded_default=sec.is_expanded_default,
         ))
 
+    for i, item in enumerate(body.multimedia_contents):
+        db.add(ArticleMultimediaContent(
+            article_id=article.id,
+            media_asset_id=item.media_asset_id,
+            order=item.order if item.order else i,
+        ))
+
     db.commit()
     db.refresh(article)
     return article_to_detail(article, db)
@@ -212,6 +248,15 @@ def update_article(
                 content_html=sec.content_html,
                 order=sec.order if sec.order else i,
                 is_expanded_default=sec.is_expanded_default,
+            ))
+
+    if body.multimedia_contents is not None:
+        db.query(ArticleMultimediaContent).filter(ArticleMultimediaContent.article_id == article_id).delete()
+        for i, item in enumerate(body.multimedia_contents):
+            db.add(ArticleMultimediaContent(
+                article_id=article_id,
+                media_asset_id=item.media_asset_id,
+                order=item.order if item.order else i,
             ))
 
     db.commit()

@@ -8,6 +8,7 @@ import { CategoryTree } from "@/types/api";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import SidePanelSectionEditor, { SectionFormData } from "@/components/admin/ArticleEditor/SidePanelSectionEditor";
+import MultimediaContentsEditor, { MultimediaContentFormData } from "@/components/admin/ArticleEditor/MultimediaContentsEditor";
 import { toast } from "react-toastify";
 
 const TipTapEditor = dynamic(() => import("@/components/admin/ArticleEditor/TipTapEditor"), { ssr: false });
@@ -28,6 +29,7 @@ export default function NewArticlePage() {
   const [status, setStatus] = useState("draft");
   const [featured, setFeatured] = useState(false);
   const [sections, setSections] = useState<SectionFormData[]>([]);
+  const [multimediaContents, setMultimediaContents] = useState<MultimediaContentFormData[]>([]);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -48,6 +50,7 @@ export default function NewArticlePage() {
         status,
         featured,
         side_panel_sections: sections.map((s, i) => ({ ...s, order: i })),
+        multimedia_contents: multimediaContents.map((m, i) => ({ ...m, order: i })),
       });
       toast.success("Article created!");
       router.push(`/admin/articles/${article.data.id}/edit`);
@@ -107,6 +110,10 @@ export default function NewArticlePage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <SidePanelSectionEditor sections={sections} onChange={setSections} />
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <MultimediaContentsEditor value={multimediaContents} onChange={setMultimediaContents} />
         </div>
 
         <div className="flex gap-3 pb-8">

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from app.dependencies.db import get_db
 from app.dependencies.auth import require_authenticated_user
@@ -21,7 +22,18 @@ router = APIRouter(prefix="/api/categories", tags=["categories"])
 
 def build_tree(categories: List[Category]) -> List[CategoryTree]:
     """Build a nested tree from a flat list of categories."""
-    cat_map = {c.id: CategoryTree.model_validate(c) for c in categories}
+    cat_map = {
+        c.id: CategoryTree(
+            id=c.id,
+            name=c.name,
+            slug=c.slug,
+            description=c.description,
+            parent_id=c.parent_id,
+            depth=c.depth,
+            order=c.order,
+        )
+        for c in categories
+    }
     roots = []
     for c in categories:
         node = cat_map[c.id]
@@ -68,7 +80,26 @@ def build_subtree(parent_id: int, all_categories: List[Category], depth_map: dic
 @router.get("", response_model=dict)
 def get_category_tree(db: Session = Depends(get_db)):
     cats = db.query(Category).order_by(Category.depth, Category.order).all()
+    counts = dict(
+        db.query(Article.category_id, func.count(Article.id))
+        .filter(Article.status == "published")
+        .group_by(Article.category_id)
+        .all()
+    )
+
     tree = build_tree(cats)
+
+    def attach_counts(nodes: List[CategoryTree]) -> int:
+        branch_total = 0
+        for node in nodes:
+            direct_count = int(counts.get(node.id, 0) or 0)
+            descendant_count = attach_counts(node.children)
+            node.article_count = direct_count + descendant_count
+            branch_total += node.article_count
+
+        return branch_total
+
+    attach_counts(tree)
     return {"tree": [t.model_dump() for t in tree]}
 
 

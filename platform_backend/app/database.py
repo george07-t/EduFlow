@@ -16,5 +16,5 @@ Base = declarative_base()
 
 
 def create_tables():
-    from app.models import user, category, media_asset, article, side_panel_section  # noqa
+    from app.models import user, category, media_asset, article, side_panel_section, article_multimedia_content  # noqa
     Base.metadata.create_all(bind=engine)

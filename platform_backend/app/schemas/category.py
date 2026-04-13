@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -38,7 +38,8 @@ class CategoryTree(BaseModel):
     parent_id: Optional[int] = None
     depth: int
     order: int
-    children: List["CategoryTree"] = []
+    article_count: int = 0
+    children: List["CategoryTree"] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 
@@ -64,8 +65,8 @@ class CategoryDetail(BaseModel):
     description: Optional[str] = None
     parent_id: Optional[int] = None
     depth: int
-    breadcrumb: List[dict] = []
-    children: List[CategoryTree] = []
-    articles: List[ArticleSummary] = []
+    breadcrumb: List[dict] = Field(default_factory=list)
+    children: List[CategoryTree] = Field(default_factory=list)
+    articles: List[ArticleSummary] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}

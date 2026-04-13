@@ -28,3 +28,4 @@ class MediaAsset(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     creator = relationship("User", foreign_keys=[created_by])
+    article_multimedia_links = relationship("ArticleMultimediaContent", back_populates="media_asset")
