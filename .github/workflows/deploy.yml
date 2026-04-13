@@ -10,7 +10,7 @@ on:
       - "platform_frontend/**"
       - "docker-compose.prod.yml"
       - "docker-compose.override.yml"
-      - ".github/workflows/deploy-docker.yml"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 concurrency:
