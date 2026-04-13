@@ -1,0 +1,83 @@
+name: Deploy to Production (Docker)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "platform_backend/**"
+      - "platform_frontend/**"
+      - "docker-compose.prod.yml"
+      - "docker-compose.override.yml"
+      - ".github/workflows/deploy-docker.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            echo "=== Starting deployment to ${{ secrets.DEPLOY_HOST }} ==="
+            cd "${{ secrets.APP_DIR }}"
+
+            echo "=== Pulling latest code ==="
+            git fetch --all --prune
+            git checkout "${{ github.ref_name }}"
+            git pull origin "${{ github.ref_name }}"
+
+            echo "=== Checking Docker ==="
+            docker --version
+            docker compose version
+
+            echo "=== Checking required env file ==="
+            test -f .env.prod || { echo ".env.prod not found"; exit 1; }
+
+            echo "=== Preparing compose files ==="
+            COMPOSE_FILES="-f docker-compose.prod.yml"
+            if [ -f docker-compose.override.yml ]; then
+              COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.override.yml"
+            fi
+
+            echo "=== Building images ==="
+            docker compose --env-file .env.prod $COMPOSE_FILES build --pull
+
+            echo "=== Starting containers ==="
+            docker compose --env-file .env.prod $COMPOSE_FILES up -d --remove-orphans
+
+            echo "=== Waiting for services ==="
+            sleep 15
+
+            echo "=== Container status ==="
+            docker compose --env-file .env.prod $COMPOSE_FILES ps
+
+            echo "=== Recent logs ==="
+            docker compose --env-file .env.prod $COMPOSE_FILES logs --tail=120 db
+            docker compose --env-file .env.prod $COMPOSE_FILES logs --tail=120 backend
+            docker compose --env-file .env.prod $COMPOSE_FILES logs --tail=120 frontend
+
+            echo "=== Health check ==="
+            curl -fsS http://127.0.0.1:8000/api/health
+
+            echo "=== Light cleanup (safe) ==="
+            docker image prune -f
+
+            echo "=== Deployment completed successfully ==="
