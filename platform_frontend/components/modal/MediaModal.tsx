@@ -30,7 +30,6 @@ export default function MediaModal() {
   const { isOpen, payload, closeModal } = useModalStore();
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeModal();
@@ -39,7 +38,6 @@ export default function MediaModal() {
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, closeModal]);
 
-  // Lock body scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };

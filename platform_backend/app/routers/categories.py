@@ -201,7 +201,6 @@ def delete_category(
     cat = db.query(Category).filter(Category.id == cat_id).first()
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
-    # Orphan children to root
     db.query(Category).filter(Category.parent_id == cat_id).update({"parent_id": None, "depth": 0})
     db.delete(cat)
     db.commit()

@@ -12,7 +12,6 @@ body {
   color: var(--color-foreground);
 }
 
-/* Global dropdown styling for consistent spacing and arrow affordance */
 select:not([multiple]) {
   appearance: none;
   -webkit-appearance: none;
@@ -40,7 +39,6 @@ select option {
   color: #0f172a;
 }
 
-/* Interactive media triggers */
 .interactive-trigger {
   display: inline-flex;
   align-items: center;
@@ -81,7 +79,6 @@ select option {
   padding: 1px 4px;
 }
 
-/* Modal animation */
 @keyframes modal-in {
   from { opacity: 0; transform: scale(0.95); }
   to   { opacity: 1; transform: scale(1); }
@@ -91,7 +88,6 @@ select option {
   animation: modal-in 0.18s ease-out;
 }
 
-/* TipTap editor content */
 .ProseMirror {
   outline: none;
   min-height: 400px;
@@ -105,7 +101,6 @@ select option {
   height: 0;
 }
 
-/* Prose styles */
 .prose h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.75rem; }
 .prose h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; margin-top: 1.5rem; }
 .prose h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; margin-top: 1.25rem; }

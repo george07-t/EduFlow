@@ -18,7 +18,6 @@ class Article(Base):
         nullable=True,
         index=True,
     )
-    # draft | published | archived
     status = Column(String(20), default="draft", nullable=False)
     featured = Column(Boolean, default=False, nullable=False)
     read_time = Column(Integer, nullable=True)

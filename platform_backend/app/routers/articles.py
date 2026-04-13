@@ -103,8 +103,6 @@ def article_to_detail(a: Article, db: Session) -> ArticleDetail:
     )
 
 
-# ── Public endpoints ──────────────────────────────────────────────────────────
-
 @router.get("", response_model=PaginatedArticles)
 def list_articles(
     category_slug: Optional[str] = Query(default=None),
@@ -117,7 +115,6 @@ def list_articles(
 ):
     q = db.query(Article)
 
-    # Public users only see published; authenticated users can manage drafts.
     if not current_user:
         q = q.filter(Article.status == "published")
 
@@ -168,8 +165,6 @@ def get_article(
         raise HTTPException(status_code=404, detail="Article not found")
     return article_to_detail(article, db)
 
-
-# ── Authenticated creator endpoints ──────────────────────────────────────────
 
 @router.post("", response_model=ArticleDetail, status_code=201)
 def create_article(

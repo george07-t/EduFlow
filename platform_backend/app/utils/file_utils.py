@@ -35,7 +35,6 @@ def validate_and_save(file: UploadFile, asset_type: str) -> tuple[str, str, int]
     content = file.file.read()
     file_size = len(content)
 
-    # MIME type from extension + content sniff
     mime_type, _ = mimetypes.guess_type(file.filename or "")
     if not mime_type:
         mime_type = "application/octet-stream"

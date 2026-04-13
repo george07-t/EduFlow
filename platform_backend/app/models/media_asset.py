@@ -9,15 +9,14 @@ class MediaAsset(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
-    # type: text | image | audio | local_video | youtube
     type = Column(String(20), nullable=False)
-    file_path = Column(String(500), nullable=True)   # for uploaded files
-    url = Column(String(1000), nullable=True)         # for youtube / external
+    file_path = Column(String(500), nullable=True)
+    url = Column(String(1000), nullable=True)
     mime_type = Column(String(100), nullable=True)
     file_size = Column(BigInteger, nullable=True)
     alt_text = Column(Text, nullable=True)
     transcript = Column(Text, nullable=True)
-    content = Column(Text, nullable=True)             # for text type
+    content = Column(Text, nullable=True)
     created_by = Column(
         Integer,
         ForeignKey("users.id", ondelete="SET NULL"),
