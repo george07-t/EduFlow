@@ -1,62 +1,173 @@
-# Interactive Teaching Platform (Dynamic EduFlow)
+# Dynamic EduFlow
 
-Full-stack multimedia CMS:
+Dynamic EduFlow is a full-stack multimedia learning platform with a public article experience and an admin workspace for categories, media assets, and article authoring.
 
-- Backend: FastAPI + SQLAlchemy
+## Brief explanation of approach
+
+The project follows a modular full-stack approach: a FastAPI backend provides clean REST APIs for authentication, categories, media, and articles, while a Next.js frontend consumes those APIs for both public learning pages and admin workflows. Docker Compose is used as the standard runtime so backend, frontend, and database run in a reproducible environment. The implementation emphasizes clear data contracts, media-first content authoring, and deployment-ready configuration for local and cloud environments.
+
+## Tech Stack
+
+- Frontend: Next.js (App Router), TypeScript, Tailwind CSS, React Query, TipTap, Zustand
+- Backend: FastAPI, SQLAlchemy, Pydantic
 - Database: PostgreSQL
-- Frontend: Next.js App Router + TipTap + Zustand + React Query
-- Deployment: Docker Compose (dev and production variants)
+- Runtime: Docker Compose
 
-## Services
+## Repository Structure
 
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:8000>
-- Swagger: <http://localhost:8000/docs>
-- PostgreSQL: localhost:5432
+```text
+.
+├── platform_frontend/        # Next.js application
+├── platform_backend/         # FastAPI application
+├── docker-compose.yml        # Development compose
+├── docker-compose.prod.yml   # Production overlay compose
+└── .env.example              # Root environment template for compose
+```
+## SS (Screenshots)
 
-## Quick Start (Docker Compose - Development)
+<table>
+	<tr>
+		<td align="center" width="50%">
+			<img src="images/home.png" alt="Home Page" width="100%" />
+			<br />
+			<sub><b>Home Page</b></sub>
+		</td>
+		<td align="center" width="50%">
+			<img src="images/dashboard.png" alt="Admin Dashboard" width="100%" />
+			<br />
+			<sub><b>Admin Dashboard</b></sub>
+		</td>
+	</tr>
+	<tr>
+		<td align="center" width="50%">
+			<img src="images/article_list.png" alt="Admin Articles List" width="100%" />
+			<br />
+			<sub><b>Admin Articles List</b></sub>
+		</td>
+		<td align="center" width="50%">
+			<img src="images/media.png" alt="Media Library" width="100%" />
+			<br />
+			<sub><b>Media Library</b></sub>
+		</td>
+	</tr>
+	<tr>
+		<td align="center" width="50%">
+			<img src="images/article_details.png" alt="Article Details" width="100%" />
+			<br />
+			<sub><b>Article Details</b></sub>
+		</td>
+		<td align="center" width="50%">
+			<img src="images/content_model.png" alt="Content Model" width="100%" />
+			<br />
+			<sub><b>Content Model</b></sub>
+		</td>
+	</tr>
+</table>
 
-1. From project root, copy env template:
+## Features
+
+- Public article browsing by category
+- Rich article content with media trigger rendering (`[[media:N]]`)
+- Multimedia content section per article
+- Category tree with aggregated article counts
+- Admin workspace for:
+- Category CRUD (tree)
+- Media upload/library management
+- Article create/edit with side panels and multimedia linking
+- Authentication with access/refresh cookie flow
+
+## Prerequisites
+
+- Docker Desktop (or Docker Engine + Compose v2)
+- Git
+- Node.js 20+ (only needed for local non-Docker frontend run)
+- Python 3.12+ (only needed for local non-Docker backend run)
+
+## Environment Setup
+
+Create root environment file:
+
+Windows (PowerShell):
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Linux/macOS:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Start all services:
+Then adjust values in `.env` as needed.
+
+## Run With Docker (Development)
+
+1. Build and start:
 
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 ```
 
-3. Check status:
+2. Check services:
 
 ```bash
 docker compose ps
 ```
 
-4. (Optional) Rerun seed manually:
+3. Open:
 
-```bash
-docker compose exec backend python seed.py
-```
+- Frontend: <http://localhost:3000>
+- Backend API: <http://localhost:8000>
+- API docs: <http://localhost:8000/docs>
 
-Stop services:
+4. Stop services:
 
 ```bash
 docker compose down
 ```
 
-## Local Non-Docker Run
+## Seed Data
+
+If `RUN_SEED=true`, seed runs during backend startup.
+
+Manual seed run:
+
+```bash
+docker compose exec backend python seed.py
+```
+
+## Default Seed Account
+
+- Username: `admin`
+- Password: `admin123`
+
+Change this in production workflows.
+
+## Local Run Without Docker
 
 ### Backend
 
 ```bash
 cd platform_backend
 python -m venv .venv
-# Windows
+```
+
+Windows:
+
+```powershell
 .venv\Scripts\activate
+Copy-Item .env.example .env
 pip install -r requirements.txt
-copy .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
+
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+cp .env.example .env
+pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -65,51 +176,59 @@ uvicorn app.main:app --reload --port 8000
 ```bash
 cd platform_frontend
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-## Production (Single Host / AWS EC2)
+## Production Deployment (Docker)
 
-Use the production override file to disable dev behaviors (such as auto-seeding) and apply restart/health policies.
-
-1. Create `.env` with production values (never commit this file):
-
-- Strong `SECRET_KEY` (32+ chars)
-- Public `BASE_URL` (HTTPS)
-- Strong DB password
-- Proper `ALLOWED_ORIGINS`
-
-2. Start production stack:
+Use base + production overlay compose files:
 
 ```bash
 docker compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-3. Verify health:
+Health and status checks:
 
 ```bash
 docker compose ps
 curl http://localhost:8000/api/health
 ```
 
-### Recommended AWS Setup
+## AWS Notes
 
-- Deploy on EC2 with Docker installed.
-- Keep ports 3000/8000 private if using ALB or reverse proxy.
-- Attach an Application Load Balancer with HTTPS (ACM certificate).
-- Point DNS to ALB.
-- Persist DB and uploads using Docker volumes or external managed services.
-- For production scale, move DB to Amazon RDS and object files to S3.
+- Recommended starting path: EC2 + Docker Compose
+- For managed database: Amazon RDS for PostgreSQL
+- For media storage at scale: Amazon S3 + CDN
+- Use HTTPS with ALB + ACM certificate
+- Keep backend/db ports private when behind a load balancer
 
-## Accounts
+## CI/CD
 
-- Anyone can register from `/register` and access creator workspace at `/admin`.
-- Seed creates a default admin account only when `RUN_SEED=true`:
-  - Username: `admin`
-  - Password: `admin123`
+Deployment workflow file:
 
-## Important Behavior
+- `.github/workflows/deploy.yml`
 
-- Inline media tags are stored as `[[media:N]]` and rendered client-side as clickable triggers.
-- One global modal dynamically renders media type content.
-- Creator routes are middleware-protected and checked in client auth state.
+Required GitHub Secrets used by deployment:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_KEY`
+- `APP_DIR`
+
+
+## Useful Commands
+
+```bash
+# Rebuild specific service
+docker compose up -d --build backend
+
+# Backend logs
+docker compose logs -f backend
+
+# Frontend logs
+docker compose logs -f frontend
+
+# Run frontend lint
+cd platform_frontend && npm run lint
+```
