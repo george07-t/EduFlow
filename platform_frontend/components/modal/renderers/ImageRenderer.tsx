@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 
 export default function ImageRenderer({ url, alt, title }: { url: string; alt?: string; title: string }) {
   const [zoomed, setZoomed] = useState(false);

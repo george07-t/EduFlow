@@ -6,12 +6,13 @@ interface ToolbarProps {
   onInsertMedia: () => void;
 }
 
-type ButtonDef = {
-  label: string;
-  action: () => void;
-  active?: boolean;
-  title: string;
-};
+const FONT_OPTIONS = [
+  { label: "Default", value: "" },
+  { label: "Serif", value: "Georgia" },
+  { label: "Sans", value: "Arial" },
+  { label: "Mono", value: "Courier New" },
+  { label: "Times", value: "Times New Roman" },
+];
 
 export default function EditorToolbar({ editor, onInsertMedia }: ToolbarProps) {
   const btn = (label: string, action: () => void, active: boolean, title: string) => (
@@ -37,8 +38,8 @@ export default function EditorToolbar({ editor, onInsertMedia }: ToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-1 px-3 py-2 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
       {/* Undo / Redo */}
-      {btn("↩", () => editor.chain().focus().undo().run(), false, "Undo")}
-      {btn("↪", () => editor.chain().focus().redo().run(), false, "Redo")}
+      {btn("Undo", () => editor.chain().focus().undo().run(), false, "Undo")}
+      {btn("Redo", () => editor.chain().focus().redo().run(), false, "Redo")}
       {divider()}
 
       {/* Text style */}
@@ -55,25 +56,26 @@ export default function EditorToolbar({ editor, onInsertMedia }: ToolbarProps) {
       {divider()}
 
       {/* Alignment */}
-      {btn("≡L", () => editor.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" }), "Align Left")}
-      {btn("≡C", () => editor.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" }), "Align Center")}
-      {btn("≡R", () => editor.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" }), "Align Right")}
+      {btn("Left", () => editor.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" }), "Align Left")}
+      {btn("Center", () => editor.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" }), "Align Center")}
+      {btn("Right", () => editor.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" }), "Align Right")}
+      {btn("Justify", () => editor.chain().focus().setTextAlign("justify").run(), editor.isActive({ textAlign: "justify" }), "Justify")}
       {divider()}
 
       {/* Lists */}
-      {btn("• List", () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Bullet List")}
-      {btn("1. List", () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numbered List")}
+      {btn("Bullets", () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Bullet List")}
+      {btn("Numbered", () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numbered List")}
       {divider()}
 
       {/* Blocks */}
-      {btn("❝", () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote"), "Blockquote")}
+      {btn("Quote", () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote"), "Blockquote")}
       {btn("</>", () => editor.chain().focus().toggleCodeBlock().run(), editor.isActive("codeBlock"), "Code Block")}
-      {btn("─", () => editor.chain().focus().setHorizontalRule().run(), false, "Horizontal Rule")}
+      {btn("HR", () => editor.chain().focus().setHorizontalRule().run(), false, "Horizontal Rule")}
       {divider()}
 
       {/* Link */}
       {btn(
-        "🔗",
+        "Link",
         () => {
           const url = window.prompt("Enter URL:");
           if (url) editor.chain().focus().setLink({ href: url }).run();
@@ -83,15 +85,32 @@ export default function EditorToolbar({ editor, onInsertMedia }: ToolbarProps) {
       )}
 
       {/* Highlight */}
-      {btn("🖊", () => editor.chain().focus().toggleHighlight().run(), editor.isActive("highlight"), "Highlight")}
+      {btn("Mark", () => editor.chain().focus().toggleHighlight().run(), editor.isActive("highlight"), "Highlight")}
 
       {/* Table */}
       {btn(
-        "⊞ Table",
+        "Table",
         () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
         false,
         "Insert Table"
       )}
+      <select
+        className="px-2 py-1 rounded text-sm border border-gray-200 bg-white text-gray-700"
+        value={editor.getAttributes("textStyle").fontFamily || ""}
+        onChange={(e) => {
+          const family = e.target.value;
+          if (!family) {
+            editor.chain().focus().unsetFontFamily().run();
+            return;
+          }
+          editor.chain().focus().setFontFamily(family).run();
+        }}
+        title="Font Family"
+      >
+        {FONT_OPTIONS.map((opt) => (
+          <option key={opt.label} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
       {divider()}
 
       {/* Insert Media */}
@@ -101,7 +120,7 @@ export default function EditorToolbar({ editor, onInsertMedia }: ToolbarProps) {
         title="Insert Media Trigger"
         className="px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
       >
-        📎 Insert Media
+        Insert Media
       </button>
     </div>
   );

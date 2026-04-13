@@ -4,7 +4,7 @@ from typing import Optional
 import math
 
 from app.dependencies.db import get_db
-from app.dependencies.auth import require_admin, get_current_user_optional
+from app.dependencies.auth import require_authenticated_user, get_current_user_optional
 from app.models.article import Article
 from app.models.category import Category
 from app.models.side_panel_section import SidePanelSection
@@ -88,8 +88,8 @@ def list_articles(
 ):
     q = db.query(Article)
 
-    # Non-admins only see published
-    if not current_user or current_user.role != "admin":
+    # Public users only see published; authenticated users can manage drafts.
+    if not current_user:
         q = q.filter(Article.status == "published")
 
     if category_slug:
@@ -113,6 +113,18 @@ def list_articles(
     )
 
 
+@router.get("/id/{article_id}", response_model=ArticleDetail)
+def get_article_by_id(
+    article_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_authenticated_user),
+):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return article_to_detail(article, db)
+
+
 @router.get("/{slug}", response_model=ArticleDetail)
 def get_article(
     slug: str,
@@ -120,7 +132,7 @@ def get_article(
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     q = db.query(Article).filter(Article.slug == slug)
-    if not current_user or current_user.role != "admin":
+    if not current_user:
         q = q.filter(Article.status == "published")
     article = q.first()
     if not article:
@@ -128,13 +140,13 @@ def get_article(
     return article_to_detail(article, db)
 
 
-# ── Admin endpoints ───────────────────────────────────────────────────────────
+# ── Authenticated creator endpoints ──────────────────────────────────────────
 
 @router.post("", response_model=ArticleDetail, status_code=201)
 def create_article(
     body: ArticleCreate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     slug = unique_slug(body.title, Article, db)
     article = Article(
@@ -146,7 +158,7 @@ def create_article(
         status=body.status,
         featured=body.featured,
         read_time=compute_read_time(body.body_html),
-        created_by=admin.id,
+        created_by=user.id,
     )
     db.add(article)
     db.flush()
@@ -170,7 +182,7 @@ def update_article(
     article_id: int,
     body: ArticleUpdate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
@@ -212,7 +224,7 @@ def update_article_status(
     article_id: int,
     body: ArticleStatusUpdate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
@@ -228,7 +240,7 @@ def update_article_status(
 def delete_article(
     article_id: int,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:

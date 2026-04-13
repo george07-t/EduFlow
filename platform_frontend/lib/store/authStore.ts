@@ -6,6 +6,7 @@ import { authApi } from "@/lib/api/auth";
 interface AuthStore {
   user: User | null;
   isLoading: boolean;
+  register: (username: string, email: string, password: string) => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
@@ -14,6 +15,17 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isLoading: false,
+
+  register: async (username, email, password) => {
+    set({ isLoading: true });
+    try {
+      const res = await authApi.register({ username, email, password });
+      set({ user: res.data.user, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false });
+      throw err;
+    }
+  },
 
   login: async (username, password) => {
     set({ isLoading: true });

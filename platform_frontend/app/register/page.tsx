@@ -1,29 +1,29 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { useAuthStore } from "@/lib/store/authStore";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { toast } from "react-toastify";
 
-export default function LoginPage() {
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register, isLoading } = useAuthStore();
+
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuthStore();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(username, password);
-      toast.success("Welcome back!");
-      const redirect = searchParams.get("redirect");
-      router.push(redirect || "/admin");
+      await register(username, email, password);
+      toast.success("Account created successfully");
+      router.push("/admin");
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Invalid credentials";
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Registration failed";
       toast.error(msg);
     }
   };
@@ -32,8 +32,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Sign In</h1>
-          <p className="text-gray-500 text-sm mt-1">Access your creator workspace.</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Create Account</h1>
+          <p className="text-gray-500 text-sm mt-1">Register and start publishing your content.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -41,9 +41,17 @@ export default function LoginPage() {
             label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
+            placeholder="your-username"
             required
             autoFocus
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@example.com"
+            required
           />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Password</label>
@@ -52,8 +60,9 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Create a strong password"
                 required
+                minLength={6}
                 className="w-full px-3 py-2 pr-20 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
               />
               <button
@@ -65,15 +74,16 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+
           <Button type="submit" className="w-full" loading={isLoading}>
-            Sign In
+            Register
           </Button>
         </form>
 
         <div className="text-center text-sm text-gray-500 mt-6">
-          New here?{" "}
-          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-            Create account
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            Sign in
           </Link>
         </div>
       </div>

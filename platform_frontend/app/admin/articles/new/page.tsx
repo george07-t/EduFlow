@@ -60,7 +60,7 @@ export default function NewArticlePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">New Article</h1>
-        <Button variant="secondary" onClick={() => router.back()}>← Back</Button>
+        <Button variant="secondary" onClick={() => router.back()}>Back</Button>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -77,7 +77,7 @@ export default function NewArticlePage() {
               <label className="text-sm font-medium text-gray-700">Category</label>
               <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">— No category</option>
+                <option value="">No category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{"  ".repeat(c.depth)}{c.name}</option>)}
               </select>
             </div>
@@ -100,7 +100,7 @@ export default function NewArticlePage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-900 mb-4">
             Body Content
-            <span className="ml-2 text-xs font-normal text-gray-400">Use "Insert Media" to embed [[media:N]] triggers</span>
+            <span className="ml-2 text-xs font-normal text-gray-400">Use &quot;Insert Media&quot; to embed [[media:N]] triggers</span>
           </h2>
           <TipTapEditor content={bodyHtml} onChange={setBodyHtml} />
         </div>

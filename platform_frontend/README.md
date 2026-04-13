@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interactive Teaching Platform Frontend
 
-## Getting Started
+Next.js frontend for the Dynamic EduFlow headless CMS.
 
-First, run the development server:
+## Features
+
+- Public pages:
+  - Home article listing with category navigation
+  - Category detail pages with nested category tree
+  - Article page with rich body content and clickable inline media triggers like `[[media:14]]`
+- Interactive UI:
+  - Global dynamic media modal (text/image/audio/local video/YouTube)
+  - Accordion side-panel for article sections (Introduction, Detailed Explanation, etc.)
+  - Route-level skeleton loading states using `react-loading-skeleton`
+  - Toast notifications via `react-toastify`
+- Creator pages:
+  - Register and login flow
+  - Protected workspace routes
+  - Category CRUD (nested hierarchy)
+  - Media upload/library management
+  - Article create/edit with TipTap (Word-like toolbar + media trigger insertion)
+
+## Local Development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+1. Configure environment:
+
+```bash
+# platform_frontend/.env.local
+BACKEND_URL=http://localhost:8000
+NEXT_PUBLIC_SITE_NAME=Dynamic EduFlow
+```
+
+1. Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- App: <http://localhost:3000>
+- Register: <http://localhost:3000/register>
+- Workspace: <http://localhost:3000/admin>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Production Build
 
-## Learn More
+```bash
+npm run build
+npm run start -- -H 0.0.0.0 -p 3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Docker
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This folder includes a production Dockerfile.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Build uses multi-stage image
+- Exposes port 3000
+- Expects `BACKEND_URL` to point to FastAPI service
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Use the root `docker-compose.yml` to run full stack.

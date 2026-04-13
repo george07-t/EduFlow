@@ -39,9 +39,8 @@ export default async function HomePage() {
             </div>
             {articles.length === 0 ? (
               <div className="text-center py-16 text-gray-400">
-                <p className="text-5xl mb-3">📚</p>
                 <p className="text-lg font-medium text-gray-600">No articles yet</p>
-                <p className="text-sm">Log in as admin to start creating content.</p>
+                <p className="text-sm">Register and sign in to start creating content.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">

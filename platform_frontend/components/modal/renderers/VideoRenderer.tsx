@@ -5,8 +5,9 @@ export default function VideoRenderer({ url }: { url: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    const currentVideo = videoRef.current;
     return () => {
-      if (videoRef.current) videoRef.current.pause();
+      if (currentVideo) currentVideo.pause();
     };
   }, []);
 

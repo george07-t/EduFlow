@@ -10,10 +10,6 @@ interface MediaPickerProps {
   onClose: () => void;
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  image: "🖼️", audio: "🎵", local_video: "🎬", youtube: "▶️", text: "📄",
-};
-
 export default function MediaPicker({ onSelect, onClose }: MediaPickerProps) {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +38,7 @@ export default function MediaPicker({ onSelect, onClose }: MediaPickerProps) {
       <div className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold text-gray-900">Select Media Asset</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+          <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">Close</button>
         </div>
         <div className="p-4 border-b">
           <Input
@@ -69,7 +65,7 @@ export default function MediaPicker({ onSelect, onClose }: MediaPickerProps) {
                   onClick={() => onSelect(asset)}
                   className="flex flex-col items-center gap-2 p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
                 >
-                  <span className="text-3xl">{TYPE_ICONS[asset.type] || "📎"}</span>
+                  <span className="text-xs text-gray-600 font-semibold uppercase tracking-wide">{asset.type.replace("_", " ")}</span>
                   <span className="text-xs text-gray-700 font-medium text-center line-clamp-2">{asset.title}</span>
                   <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{asset.type}</span>
                   <span className="text-xs text-gray-400">ID: {asset.id}</span>

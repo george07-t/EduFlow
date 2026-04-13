@@ -4,12 +4,13 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import { toast } from "react-toastify";
+import Skeleton from "@/components/ui/Skeleton";
 
 const NAV_ITEMS = [
-  { href: "/admin", label: "📊 Dashboard", exact: true },
-  { href: "/admin/articles", label: "📝 Articles" },
-  { href: "/admin/media", label: "🖼️ Media" },
-  { href: "/admin/categories", label: "🗂️ Categories" },
+  { href: "/admin", label: "Dashboard", exact: true },
+  { href: "/admin/articles", label: "Articles" },
+  { href: "/admin/media", label: "Media" },
+  { href: "/admin/categories", label: "Categories" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -20,11 +21,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     checkSession().then(() => {
       const u = useAuthStore.getState().user;
-      if (!u || u.role !== "admin") {
+      if (!u) {
         router.replace("/login");
       }
     });
-  }, []);
+  }, [checkSession, router]);
 
   const handleLogout = async () => {
     await logout();
@@ -34,16 +35,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-3 text-gray-500">
-          <span className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          Loading...
+      <div className="min-h-screen bg-slate-50 p-8">
+        <div className="max-w-6xl mx-auto space-y-4">
+          <Skeleton height={36} width="30%" />
+          <Skeleton height={300} />
         </div>
       </div>
     );
   }
 
-  if (!user || user.role !== "admin") return null;
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -53,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xl font-bold text-blue-600">EduFlow</span>
           </Link>
-          <p className="text-xs text-gray-400 mt-0.5">Admin Dashboard</p>
+          <p className="text-xs text-gray-400 mt-0.5">Creator Workspace</p>
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">

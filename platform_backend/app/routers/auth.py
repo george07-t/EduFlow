@@ -4,8 +4,9 @@ from typing import Optional
 from app.dependencies.db import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.auth import LoginRequest, LoginResponse, UserOut
+from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, UserOut
 from app.services.auth_service import (
+    hash_password,
     verify_password,
     create_access_token,
     create_refresh_token,
@@ -51,6 +52,31 @@ def login(body: LoginRequest, response: Response, db: Session = Depends(get_db))
 
     set_auth_cookies(response, user)
     return LoginResponse(user=UserOut.model_validate(user))
+
+
+@router.post("/register", response_model=RegisterResponse, status_code=201)
+def register(body: RegisterRequest, response: Response, db: Session = Depends(get_db)):
+    existing_username = db.query(User).filter(User.username == body.username).first()
+    if existing_username:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+
+    existing_email = db.query(User).filter(User.email == body.email).first()
+    if existing_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    user = User(
+        username=body.username,
+        email=body.email,
+        hashed_password=hash_password(body.password),
+        role="viewer",
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    set_auth_cookies(response, user)
+    return RegisterResponse(user=UserOut.model_validate(user))
 
 
 @router.post("/logout")

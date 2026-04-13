@@ -28,9 +28,9 @@ export default function AdminDashboard() {
   }, []);
 
   const cards = [
-    { title: "Total Articles", value: stats.articles, icon: "📝", href: "/admin/articles", color: "blue" },
-    { title: "Media Assets", value: stats.media, icon: "🖼️", href: "/admin/media", color: "purple" },
-    { title: "Categories", value: stats.categories, icon: "🗂️", href: "/admin/categories", color: "green" },
+    { title: "Total Articles", value: stats.articles, href: "/admin/articles" },
+    { title: "Media Assets", value: stats.media, href: "/admin/media" },
+    { title: "Categories", value: stats.categories, href: "/admin/categories" },
   ];
 
   return (
@@ -41,9 +41,8 @@ export default function AdminDashboard() {
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
             <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-3xl">{card.icon}</span>
-                <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-1 rounded-full">View all →</span>
+              <div className="flex items-center justify-end mb-3">
+                <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-1 rounded-full">View all</span>
               </div>
               {loading ? <Skeleton height={32} width={60} /> : (
                 <p className="text-3xl font-bold text-gray-900">{card.value}</p>
@@ -79,7 +78,7 @@ export default function AdminDashboard() {
             href="/"
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
-            View Public Site →
+            View Public Site
           </Link>
         </div>
       </div>

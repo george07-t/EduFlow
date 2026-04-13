@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { articlesApi } from "@/lib/api/articles";
 import { categoriesApi } from "@/lib/api/categories";
@@ -20,8 +20,9 @@ function flattenTree(tree: CategoryTree[]): CategoryTree[] {
   return result;
 }
 
-export default function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditArticlePage() {
   const router = useRouter();
+  const routeParams = useParams<{ id: string }>();
   const [articleId, setArticleId] = useState<number | null>(null);
   const [article, setArticle] = useState<ArticleDetail | null>(null);
   const [title, setTitle] = useState("");
@@ -36,36 +37,36 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    params.then(p => setArticleId(parseInt(p.id)));
-  }, [params]);
+    const rawId = routeParams?.id;
+    if (!rawId) return;
+    const parsed = parseInt(rawId, 10);
+    if (!Number.isNaN(parsed)) {
+      setArticleId(parsed);
+    }
+  }, [routeParams]);
 
   useEffect(() => {
     if (!articleId) return;
     setLoading(true);
     Promise.all([
       categoriesApi.tree(),
-      // Fetch article by id via list endpoint first to get slug
-      articlesApi.list({ per_page: 100 }),
-    ]).then(async ([catRes, listRes]) => {
+      articlesApi.getById(articleId),
+    ]).then(([catRes, detailRes]) => {
       setCategories(flattenTree(catRes.data.tree));
-      const found = listRes.data.items.find(a => a.id === articleId);
-      if (found) {
-        const detailRes = await articlesApi.get(found.slug);
-        const a = detailRes.data;
-        setArticle(a);
-        setTitle(a.title);
-        setSummary(a.summary || "");
-        setBodyHtml(a.body_html);
-        setCategoryId(a.category?.id?.toString() || "");
-        setStatus(a.status);
-        setFeatured(a.featured);
-        setSections(a.side_panel_sections.map(s => ({
-          label: s.label,
-          content_html: s.content_html,
-          order: s.order,
-          is_expanded_default: s.is_expanded_default,
-        })));
-      }
+      const a = detailRes.data;
+      setArticle(a);
+      setTitle(a.title);
+      setSummary(a.summary || "");
+      setBodyHtml(a.body_html);
+      setCategoryId(a.category?.id?.toString() || "");
+      setStatus(a.status);
+      setFeatured(a.featured);
+      setSections(a.side_panel_sections.map(s => ({
+        label: s.label,
+        content_html: s.content_html,
+        order: s.order,
+        is_expanded_default: s.is_expanded_default,
+      })));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [articleId]);
@@ -107,10 +108,10 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
         <div className="flex gap-2">
           {article && (
             <Button variant="ghost" onClick={() => window.open(`/article/${article.slug}`, "_blank")}>
-              Preview ↗
+              Preview
             </Button>
           )}
-          <Button variant="secondary" onClick={() => router.back()}>← Back</Button>
+          <Button variant="secondary" onClick={() => router.back()}>Back</Button>
         </div>
       </div>
 
@@ -128,7 +129,7 @@ export default function EditArticlePage({ params }: { params: Promise<{ id: stri
               <label className="text-sm font-medium text-gray-700">Category</label>
               <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">— No category</option>
+                <option value="">No category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{"  ".repeat(c.depth)}{c.name}</option>)}
               </select>
             </div>

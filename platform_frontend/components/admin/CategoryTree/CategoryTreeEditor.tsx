@@ -30,7 +30,7 @@ function CategoryNode({ node, allCategories, onDelete, onEdit }: NodeProps) {
       <div className="flex items-center gap-2 py-1.5 group">
         {node.children.length > 0 && (
           <button onClick={() => setExpanded(!expanded)} className="text-gray-400 hover:text-gray-600 w-4">
-            {expanded ? "▾" : "▸"}
+            {expanded ? "v" : ">"}
           </button>
         )}
         {node.children.length === 0 && <span className="w-4" />}
@@ -141,7 +141,7 @@ export default function CategoryTreeEditor() {
               onChange={e => setFormParentId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">— Root (no parent)</option>
+              <option value="">Root (no parent)</option>
               {flat.filter(c => c.id !== editingNode?.id).map(c => (
                 <option key={c.id} value={c.id}>{"  ".repeat(c.depth)}{c.name}</option>
               ))}

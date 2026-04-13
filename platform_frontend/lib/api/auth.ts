@@ -2,6 +2,9 @@ import client from "./client";
 import { User } from "@/types/api";
 
 export const authApi = {
+  register: (data: { username: string; email: string; password: string }) =>
+    client.post<{ user: User }>("/auth/register", data),
+
   login: (username: string, password: string) =>
     client.post<{ user: User }>("/auth/login", { username, password }),
 

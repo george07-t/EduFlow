@@ -75,7 +75,7 @@ export default function ArticlesPage() {
             ) : articles.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-12 text-center text-gray-400">
-                  No articles yet. <Link href="/admin/articles/new" className="text-blue-600 hover:underline">Create the first one →</Link>
+                  No articles yet. <Link href="/admin/articles/new" className="text-blue-600 hover:underline">Create the first one</Link>
                 </td>
               </tr>
             ) : articles.map((article) => (
@@ -87,7 +87,7 @@ export default function ArticlesPage() {
                   </div>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell text-gray-500">
-                  {article.category?.name || <span className="text-gray-300">—</span>}
+                  {article.category?.name || <span className="text-gray-300">None</span>}
                 </td>
                 <td className="px-4 py-3">
                   <Badge label={article.status} variant={statusVariant(article.status)} />

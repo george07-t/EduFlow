@@ -30,16 +30,21 @@ export default function Header() {
           {user ? (
             <>
               <Link href="/admin" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                Dashboard
+                Workspace
               </Link>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 Logout
               </Button>
             </>
           ) : (
-            <Link href="/login">
-              <Button size="sm">Admin Login</Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/register" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                Register
+              </Link>
+              <Link href="/login">
+                <Button size="sm">Sign In</Button>
+              </Link>
+            </div>
           )}
         </nav>
       </div>

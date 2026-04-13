@@ -2,7 +2,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: "admin" | "viewer";
+  role: "admin" | "viewer" | "creator";
 }
 
 export interface CategoryTree {

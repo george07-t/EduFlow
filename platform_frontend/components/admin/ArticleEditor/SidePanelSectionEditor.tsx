@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -27,9 +26,16 @@ export default function SidePanelSectionEditor({ sections, onChange }: Props) {
     onChange(sections.filter((_, i) => i !== idx));
   };
 
-  const updateSection = (idx: number, field: keyof SectionFormData, value: string | boolean | number) => {
+  const updateSection = <K extends keyof SectionFormData>(
+    idx: number,
+    field: K,
+    value: SectionFormData[K]
+  ) => {
     const updated = [...sections];
-    (updated[idx] as Record<string, unknown>)[field] = value;
+    updated[idx] = {
+      ...updated[idx],
+      [field]: value,
+    };
     onChange(updated);
   };
 

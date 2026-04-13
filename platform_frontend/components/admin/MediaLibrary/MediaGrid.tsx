@@ -7,10 +7,6 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { toast } from "react-toastify";
 
-const TYPE_ICONS: Record<string, string> = {
-  image: "🖼️", audio: "🎵", local_video: "🎬", youtube: "▶️", text: "📄",
-};
-
 const TYPES = ["all", "image", "audio", "local_video", "youtube", "text"];
 
 interface MediaGridProps {
@@ -39,9 +35,9 @@ export default function MediaGrid({ refreshKey }: MediaGridProps) {
     } finally {
       setLoading(false);
     }
-  }, [typeFilter, search, page, refreshKey]);
+  }, [typeFilter, search, page]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => { fetch(); }, [fetch, refreshKey]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this media asset?")) return;
@@ -78,7 +74,6 @@ export default function MediaGrid({ refreshKey }: MediaGridProps) {
         </div>
       ) : assets.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
-          <p className="text-4xl mb-2">📭</p>
           <p>No media assets found</p>
         </div>
       ) : (
@@ -89,12 +84,12 @@ export default function MediaGrid({ refreshKey }: MediaGridProps) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={asset.url} alt={asset.alt_text || asset.title} className="w-full h-24 object-cover rounded-lg mb-2" />
               ) : (
-                <div className="w-full h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-2 text-4xl">
-                  {TYPE_ICONS[asset.type] || "📎"}
+                <div className="w-full h-24 bg-gray-50 rounded-lg flex items-center justify-center mb-2 text-xs text-gray-600 font-medium uppercase tracking-wide">
+                  {asset.type.replace("_", " ")}
                 </div>
               )}
               <p className="text-xs font-medium text-gray-800 truncate" title={asset.title}>{asset.title}</p>
-              <p className="text-xs text-gray-400">ID: {asset.id} · {asset.type}</p>
+              <p className="text-xs text-gray-400">ID: {asset.id} | {asset.type}</p>
               <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleDelete(asset.id)}

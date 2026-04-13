@@ -12,6 +12,8 @@ export const articlesApi = {
 
   get: (slug: string) => client.get<ArticleDetail>(`/articles/${slug}`),
 
+  getById: (id: number) => client.get<ArticleDetail>(`/articles/id/${id}`),
+
   create: (data: {
     title: string;
     category_id?: number;

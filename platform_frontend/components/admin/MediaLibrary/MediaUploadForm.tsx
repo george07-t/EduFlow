@@ -119,7 +119,7 @@ export default function MediaUploadForm({ onSuccess, onCancel }: MediaUploadForm
           >
             <input {...getInputProps()} />
             {file ? (
-              <p className="text-sm text-green-600 font-medium">✅ {file.name} ({(file.size / 1024).toFixed(1)} KB)</p>
+              <p className="text-sm text-green-600 font-medium">Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)</p>
             ) : (
               <p className="text-sm text-gray-500">
                 {isDragActive ? "Drop it here..." : "Drag & drop or click to select file"}

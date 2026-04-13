@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.dependencies.db import get_db
-from app.dependencies.auth import require_admin
+from app.dependencies.auth import require_authenticated_user
 from app.models.category import Category
 from app.models.article import Article
 from app.models.user import User
@@ -44,6 +44,27 @@ def build_breadcrumb(category: Category, db: Session) -> List[dict]:
     return crumbs
 
 
+def build_subtree(parent_id: int, all_categories: List[Category], depth_map: dict[int, int]) -> List[CategoryTree]:
+    grouped: dict[int | None, List[Category]] = {}
+    for cat in all_categories:
+        grouped.setdefault(cat.parent_id, []).append(cat)
+
+    def make_node(cat: Category) -> CategoryTree:
+        return CategoryTree(
+            id=cat.id,
+            name=cat.name,
+            slug=cat.slug,
+            description=cat.description,
+            parent_id=cat.parent_id,
+            depth=depth_map.get(cat.id, cat.depth),
+            order=cat.order,
+            children=[make_node(child) for child in grouped.get(cat.id, [])],
+        )
+
+    direct_children = grouped.get(parent_id, [])
+    return [make_node(child) for child in direct_children]
+
+
 @router.get("", response_model=dict)
 def get_category_tree(db: Session = Depends(get_db)):
     cats = db.query(Category).order_by(Category.depth, Category.order).all()
@@ -57,12 +78,9 @@ def get_category(slug: str, db: Session = Depends(get_db)):
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
 
-    children_flat = db.query(Category).filter(Category.parent_id == cat.id).order_by(Category.order).all()
-    children_tree = build_tree(
-        db.query(Category).order_by(Category.depth, Category.order).all()
-    )
-    # Filter only direct children tree nodes
-    children_nodes = [c for c in children_tree if c.parent_id == cat.id]
+    all_categories = db.query(Category).order_by(Category.depth, Category.order).all()
+    depth_map = {c.id: c.depth - cat.depth for c in all_categories if c.depth >= cat.depth}
+    children_nodes = build_subtree(cat.id, all_categories, depth_map)
 
     articles = (
         db.query(Article)
@@ -89,7 +107,7 @@ def get_category(slug: str, db: Session = Depends(get_db)):
 def create_category(
     body: CategoryCreate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     depth = 0
     if body.parent_id:
@@ -118,7 +136,7 @@ def update_category(
     cat_id: int,
     body: CategoryUpdate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     cat = db.query(Category).filter(Category.id == cat_id).first()
     if not cat:
@@ -147,7 +165,7 @@ def update_category(
 def delete_category(
     cat_id: int,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_authenticated_user),
 ):
     cat = db.query(Category).filter(Category.id == cat_id).first()
     if not cat:

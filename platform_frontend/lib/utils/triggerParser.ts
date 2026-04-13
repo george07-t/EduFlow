@@ -4,12 +4,12 @@ const TRIGGER_REGEX = /\[\[media:(\d+)\]\]/g;
 
 export function getMediaIcon(type: string): string {
   switch (type) {
-    case "image": return "🖼️";
-    case "audio": return "🎵";
-    case "local_video": return "🎬";
-    case "youtube": return "▶️";
-    case "text": return "📄";
-    default: return "📎";
+    case "image": return "IMAGE";
+    case "audio": return "AUDIO";
+    case "local_video": return "VIDEO";
+    case "youtube": return "YOUTUBE";
+    case "text": return "TEXT";
+    default: return "MEDIA";
   }
 }
 
@@ -30,7 +30,7 @@ export function resolveMediaTriggers(
       tabindex="0"
       aria-label="Open ${asset.title}"
       title="${asset.title}"
-    >${icon} <span class="trigger-label">${asset.title}</span></span>`;
+    ><span class="trigger-type">${icon}</span> <span class="trigger-label">${asset.title}</span></span>`;
   });
 }
 

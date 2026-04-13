@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import FocusTrap from "focus-trap-react";
 import { useModalStore } from "@/lib/store/modalStore";
 import { MediaMapEntry } from "@/types/api";
 import YoutubeRenderer from "./renderers/YoutubeRenderer";
@@ -47,44 +48,42 @@ export default function MediaModal() {
   if (!isOpen || !payload) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={closeModal}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-live="polite">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
 
-      {/* Modal box */}
-      <div
-        ref={dialogRef}
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-modal-in"
+      <FocusTrap
+        focusTrapOptions={{
+          clickOutsideDeactivates: true,
+          onDeactivate: closeModal,
+        }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-          <h2 id="modal-title" className="text-lg font-semibold text-gray-900 truncate pr-4">
-            {payload.title}
-          </h2>
-          <button
-            onClick={closeModal}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
-            aria-label="Close modal"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <div
+          ref={dialogRef}
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-modal-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+            <h2 id="modal-title" className="text-lg font-semibold text-gray-900 truncate pr-4">
+              {payload.title}
+            </h2>
+            <button
+              onClick={closeModal}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+              aria-label="Close modal"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {renderMedia(payload)}
+          <div className="flex-1 overflow-y-auto p-6">
+            {renderMedia(payload)}
+          </div>
         </div>
-      </div>
+      </FocusTrap>
     </div>
   );
 }
