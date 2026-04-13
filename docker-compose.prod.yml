@@ -1,24 +1,81 @@
+version: '3.9'
+
 services:
   db:
+    image: postgres:18
+    container_name: eduflow-db-prod
     restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eduflow}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - eduflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eduflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
     ports: []
 
   backend:
+    build:
+      context: ./platform_backend
+      dockerfile: Dockerfile
+    container_name: eduflow-backend-prod
     restart: unless-stopped
     environment:
       ENVIRONMENT: production
       RUN_SEED: "false"
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://eduflowgtr.duckdns.org}
+      UPLOAD_DIR: /app/uploads
+      BASE_URL: ${BASE_URL:-https://eduflowgtr.duckdns.org}
+    volumes:
+      - backend_uploads_prod:/app/uploads
+    networks:
+      - eduflow-network
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 15s
       timeout: 5s
       retries: 5
+    expose:
+      - "8000"
 
   frontend:
+    build:
+      context: ./platform_frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+    container_name: eduflow-frontend-prod
     restart: unless-stopped
     environment:
       NODE_ENV: production
       BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-EduFlow}
+    networks:
+      - eduflow-network
     depends_on:
       backend:
         condition: service_healthy
+    expose:
+      - "3000"
+
+volumes:
+  postgres_data_prod:
+  backend_uploads_prod:
+
+networks:
+  eduflow-network:
+    driver: bridge
