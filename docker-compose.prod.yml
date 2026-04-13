@@ -1,0 +1,24 @@
+services:
+  db:
+    restart: unless-stopped
+    ports: []
+
+  backend:
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      RUN_SEED: "false"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy

@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from app.models.media_asset import MediaAsset
@@ -17,8 +18,25 @@ def resolve_asset_url(asset: MediaAsset) -> str:
     if asset.url:
         return asset.url
     if asset.file_path:
-        clean_path = asset.file_path.lstrip("./").lstrip("/")
-        return f"{settings.BASE_URL}/{clean_path}"
+        file_path = Path(asset.file_path).as_posix()
+        upload_root = Path(settings.UPLOAD_DIR).as_posix().rstrip("/")
+
+        relative_path = ""
+        if upload_root and file_path.startswith(f"{upload_root}/"):
+            relative_path = file_path[len(upload_root) + 1 :]
+        else:
+            normalized = file_path.lstrip("./")
+            marker = "uploads/"
+            marker_index = normalized.find(marker)
+            if marker_index != -1:
+                relative_path = normalized[marker_index + len(marker) :]
+            elif "/uploads/" in file_path:
+                relative_path = file_path.split("/uploads/", 1)[1]
+            else:
+                relative_path = Path(file_path).name
+
+        base_url = settings.BASE_URL.rstrip("/")
+        return f"{base_url}/uploads/{relative_path.lstrip('/')}"
     return ""
 
 

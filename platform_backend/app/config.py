@@ -3,8 +3,8 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres:george07@localhost:5432/eduflow"
-    SECRET_KEY: str = "supersecretkey-change-this-in-production-must-be-32-chars-min"
+    DATABASE_URL: str = "postgresql://postgres:change-me-db-password@localhost:5432/eduflow"
+    SECRET_KEY: str = "replace-with-a-strong-32+char-secret"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ALLOWED_ORIGINS: str = "http://localhost:3000"
@@ -16,7 +16,17 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins_list(self) -> list[str]:
-        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
+        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+
+    def validate_runtime(self) -> None:
+        if self.ENVIRONMENT != "production":
+            return
+
+        if len(self.SECRET_KEY) < 32 or "change-this" in self.SECRET_KEY:
+            raise ValueError("SECRET_KEY must be set to a strong value in production")
+
+        if "localhost" in self.BASE_URL:
+            raise ValueError("BASE_URL must be a public HTTPS URL in production")
 
 
 @lru_cache

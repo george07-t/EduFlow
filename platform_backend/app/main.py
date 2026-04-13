@@ -8,6 +8,8 @@ from app.config import settings
 from app.database import create_tables
 from app.routers import auth, categories, media, articles, users
 
+settings.validate_runtime()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

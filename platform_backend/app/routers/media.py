@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
+from pathlib import Path
 from app.dependencies.db import get_db
 from app.dependencies.auth import require_authenticated_user
 from app.models.media_asset import MediaAsset
@@ -8,9 +9,18 @@ from app.models.user import User
 from app.schemas.media_asset import MediaAssetRead, MediaAssetUpdate, ALLOWED_TYPES
 from app.utils.file_utils import validate_and_save
 from app.services.trigger_parser import resolve_asset_url
+from app.config import settings
 import math
 
 router = APIRouter(prefix="/api/media", tags=["media"])
+
+
+def _safe_delete_local_file(file_path: str) -> None:
+    target = Path(file_path).resolve()
+    upload_root = Path(settings.UPLOAD_DIR).resolve()
+
+    if upload_root == target or upload_root in target.parents:
+        target.unlink(missing_ok=True)
 
 
 @router.get("", response_model=dict)
@@ -125,11 +135,7 @@ def delete_media(
     if not asset:
         raise HTTPException(status_code=404, detail="Media not found")
     if asset.file_path:
-        import os
-        try:
-            os.remove(asset.file_path)
-        except FileNotFoundError:
-            pass
+        _safe_delete_local_file(asset.file_path)
     db.delete(asset)
     db.commit()
 

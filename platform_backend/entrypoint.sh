@@ -15,8 +15,12 @@ except Exception as e:
 done
 echo "✅ PostgreSQL is ready"
 
-echo "🔧 Running seed..."
-python seed.py
+if [ "${RUN_SEED:-false}" = "true" ]; then
+    echo "🔧 Running seed..."
+    python seed.py
+else
+    echo "ℹ️ Skipping seed (RUN_SEED=false)"
+fi
 
 echo "🚀 Starting API server..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000

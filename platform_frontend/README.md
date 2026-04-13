@@ -31,9 +31,7 @@ npm install
 1. Configure environment:
 
 ```bash
-# platform_frontend/.env.local
-BACKEND_URL=http://localhost:8000
-NEXT_PUBLIC_SITE_NAME=Dynamic EduFlow
+cp .env.example .env.local
 ```
 
 1. Run development server:

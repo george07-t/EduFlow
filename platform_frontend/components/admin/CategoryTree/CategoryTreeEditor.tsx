@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Tree } from "react-arborist";
+import { Tree, NodeRendererProps } from "react-arborist";
 import { categoriesApi } from "@/lib/api/categories";
 import { CategoryTree } from "@/types/api";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Skeleton from "@/components/ui/Skeleton";
 import { toast } from "react-toastify";
-
-interface TreeNodeData extends CategoryTree {}
 
 function flattenTree(tree: CategoryTree[]): CategoryTree[] {
   const result: CategoryTree[] = [];
@@ -154,15 +152,15 @@ export default function CategoryTreeEditor() {
           ) : (
             <div className="rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
               <Tree
-                data={tree as TreeNodeData[]}
+                data={tree}
                 width="100%"
                 height={620}
                 indent={20}
                 rowHeight={44}
                 openByDefault
               >
-                {({ node, style }: any) => {
-                  const data = node.data as CategoryTree;
+                {({ node, style }: NodeRendererProps<CategoryTree>) => {
+                  const data = node.data;
                   const hasChildren = data.children.length > 0;
 
                   return (

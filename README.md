@@ -5,7 +5,7 @@ Full-stack multimedia CMS:
 - Backend: FastAPI + SQLAlchemy
 - Database: PostgreSQL
 - Frontend: Next.js App Router + TipTap + Zustand + React Query
-- Deployment: Docker Compose
+- Deployment: Docker Compose (dev and production variants)
 
 ## Services
 
@@ -14,49 +14,37 @@ Full-stack multimedia CMS:
 - Swagger: <http://localhost:8000/docs>
 - PostgreSQL: localhost:5432
 
-## Quick Start (Docker Compose)
+## Quick Start (Docker Compose - Development)
 
-From project root:
+1. From project root, copy env template:
+
+```bash
+cp .env.example .env
+```
+
+2. Start all services:
 
 ```bash
 docker compose up --build -d
 ```
 
-Check status:
+3. Check status:
 
 ```bash
 docker compose ps
 ```
 
-Run enriched seed data inside Docker:
+4. (Optional) Rerun seed manually:
 
 ```bash
 docker compose exec backend python seed.py
 ```
-
-Re-run seed anytime after changes:
-
-```bash
-docker compose exec backend python seed.py
-```
-
-This starts:
-
-- `db` (PostgreSQL 18)
-- `backend` (FastAPI)
-- `frontend` (Next.js)
 
 Stop services:
 
 ```bash
 docker compose down
 ```
-
-The compose file is preconfigured with:
-
-- DB user: `postgres`
-- DB password: `george07`
-- DB name: `eduflow`
 
 ## Local Non-Docker Run
 
@@ -80,10 +68,43 @@ npm install
 npm run dev
 ```
 
+## Production (Single Host / AWS EC2)
+
+Use the production override file to disable dev behaviors (such as auto-seeding) and apply restart/health policies.
+
+1. Create `.env` with production values (never commit this file):
+
+- Strong `SECRET_KEY` (32+ chars)
+- Public `BASE_URL` (HTTPS)
+- Strong DB password
+- Proper `ALLOWED_ORIGINS`
+
+2. Start production stack:
+
+```bash
+docker compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+3. Verify health:
+
+```bash
+docker compose ps
+curl http://localhost:8000/api/health
+```
+
+### Recommended AWS Setup
+
+- Deploy on EC2 with Docker installed.
+- Keep ports 3000/8000 private if using ALB or reverse proxy.
+- Attach an Application Load Balancer with HTTPS (ACM certificate).
+- Point DNS to ALB.
+- Persist DB and uploads using Docker volumes or external managed services.
+- For production scale, move DB to Amazon RDS and object files to S3.
+
 ## Accounts
 
 - Anyone can register from `/register` and access creator workspace at `/admin`.
-- Seed also creates a default admin account:
+- Seed creates a default admin account only when `RUN_SEED=true`:
   - Username: `admin`
   - Password: `admin123`
 
